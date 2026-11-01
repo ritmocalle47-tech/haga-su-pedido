@@ -70,11 +70,13 @@ body {
     animation: pulse 3s infinite;
 }
 
-.logo i {
-    margin-right: 5px;
-    font-size: 3rem;
+.logo img {
+    width: 65px;
+    height: 65px;
+    object-fit: contain;
+    margin-right: 12px;
+    border-radius: 50%;
 }
-
 
 .logo span {
     color: var(--danger);
@@ -596,6 +598,33 @@ body {
     font-weight: 600;
 }
 
+.cart-subtotal,
+.cart-discount {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    font-size: 1rem;
+}
+
+.cart-discount {
+    color: var(--success);
+    font-weight: 700;
+}
+
+.discount-message {
+    color: var(--success);
+    font-size: 0.8rem;
+    font-weight: 700;
+    margin: 6px 0;
+}
+
+.cart-item-breakdown {
+    font-size: 0.82rem;
+    margin-top: 5px;
+    color: #555;
+    line-height: 1.5;
+}
+
 .checkout-btn {
     background: linear-gradient(to right, var(--success), #00cec9);
     color: var(--white);
@@ -799,12 +828,9 @@ body {
 }
 
 @media (max-width: 480px) {
-    .logo {
-        font-size: 0.8rem;
-    }
-    
-    .logo i {
-        font-size: 1.5rem;
+    .logo img {
+       width: 45px;
+       height: 45px;
     }
     
     .banner-carousel {
@@ -846,7 +872,7 @@ body {
     <header class="header">
         <div class="container">
             <div class="logo">
-                <i class="fas fa-palette"></i>
+                <img src="Imagen/logo1.png" alt="haga">
                 <h1>Haga su pedido<span> Aquí</span></h1>
             </div>
             <div class="cart-icon">
@@ -860,7 +886,7 @@ body {
     <section class="banner-carousel">
         <div class="banner active" style="background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);">
             <div class="promo-tag">¡Oferta Especial!</div>
-            <h2>Santa Claus y Reyes Magos</h2>
+            <h2>Día de los padres</h2>
         </div>
         <div class="banner" style="background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%);">
             <div class="promo-tag">Nuevo</div>
@@ -936,7 +962,7 @@ body {
                         </div>
                     </div>
                 </div>
-
+    
                 <div class="product-card out-of-stock" data-category="mochilas">
                     <div class="product-image">
                         <img src="Imagen/2.jpeg" alt="Capitán América" class="product-img">
@@ -987,7 +1013,7 @@ body {
                         </div>
                     </div>
                 </div>
-
+    
                 <div class="product-card" data-category="juguetes">
                     <div class="product-image">
                         <img src="Imagen/4.jpeg" alt="Paquete de bolas" class="product-img">
@@ -1012,7 +1038,7 @@ body {
                         </div>
                     </div>
                 </div>
-
+    
                 <div class="product-card" data-category="juguetes">
                     <div class="product-image">
                         <img src="Imagen/5.jpeg" alt="Bate con 3 pelotas" class="product-img">
@@ -1035,7 +1061,7 @@ body {
                         </div>
                     </div>
                 </div>
-
+    
                 <div class="product-card" data-category="juguetes">
                     <div class="product-image">
                         <img src="Imagen/6.jpeg" alt="Bate con 5 pelotas" class="product-img">
@@ -1058,7 +1084,7 @@ body {
                         </div>
                     </div>
                 </div>
-
+    
                 <div class="product-card" data-category="juguetes">
                     <div class="product-image">
                         <img src="Imagen/7.jpeg" alt="Set de dinosaurios" class="product-img">
@@ -1081,7 +1107,7 @@ body {
                         </div>
                     </div>
                 </div>
-
+    
                 <div class="product-card" data-category="juguetes">
                     <div class="product-image">
                         <img src="Imagen/8.jpeg" alt="Pizarras LCD" class="product-img">
@@ -1106,7 +1132,7 @@ body {
                         </div>
                     </div>
                 </div>
-
+    
                 <div class="product-card" data-category="juegos de mesa">
                     <div class="product-image">
                         <img src="Imagen/9.jpeg" alt="Dominó doble 6" class="product-img">
@@ -1131,7 +1157,7 @@ body {
                         </div>
                     </div>
                 </div>
-
+    
                
                 <div class="product-card" data-category="diseño gráfico">
                     <div class="product-image">
@@ -1157,7 +1183,7 @@ body {
                         </div>
                     </div>
                 </div>
-
+    
                 <div class="product-card" data-category="diseño gráfico">
                     <div class="product-image">
                         <img src="Imagen/logo.jpg" alt="Creación de logos" class="product-img">
@@ -1182,6 +1208,7 @@ body {
                         </div>
                     </div>
                 </div>
+
 
                 <!-- Más productos (similares) -->
                 <!-- Se agregarían dinámicamente en una implementación real -->
@@ -1213,6 +1240,14 @@ body {
             <!-- Los items del carrito se agregarían dinámicamente -->
         </div>
         <div class="cart-footer">
+            <div class="cart-subtotal">
+                <span>Subtotal:</span>
+                <span id="cart-subtotal">$0.00</span>
+            </div>
+            <div class="cart-discount">
+                <span>Descuento aplicado a productos con 10+ unidades:</span>
+                <span id="cart-discount">$0.00</span>
+            </div>
             <div class="cart-total">
                 <span>Total:</span>
                 <span class="total-price">$0.00</span>
@@ -1258,6 +1293,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const cartItemsContainer = document.querySelector('.cart-items');
     const cartCount = document.querySelector('.cart-count');
     const cartTotal = document.querySelector('.total-price');
+    const cartSubtotal = document.querySelector('#cart-subtotal');
+    const cartDiscount = document.querySelector('#cart-discount');
     const checkoutBtn = document.querySelector('.checkout-btn');
     const cartNotification = document.querySelector('.cart-notification');
 
@@ -1416,15 +1453,25 @@ document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('.add-to-cart').forEach(button => {
         button.addEventListener('click', function () {
             const productCard = this.closest('.product-card');
-            const productId = productCard.dataset.id || Math.random().toString(36).substr(2, 9);
-            const productName = productCard.querySelector('.product-title').textContent;
-            const productPrice = parseFloat(productCard.querySelector('.price').textContent.replace('$', ''));
-            const productImage = productCard.querySelector('.product-img').src;
-            const quantity = parseInt(productCard.querySelector('.quantity-input').value);
 
-            const existingItem = cart.find(item => item.id === productId);
+            // Use the image path as a stable ID when the card has no data-id.
+            const productImageElement = productCard.querySelector('.product-img');
+            const productId = productCard.dataset.id ||
+                (productImageElement ? productImageElement.getAttribute('src') : '');
+            const productName = productCard.querySelector('.product-title').textContent.trim();
+            const productPrice = parseFloat(
+                productCard.querySelector('.price').textContent.replace(/[^0-9.]/g, '')
+            );
+            const productImage = productImageElement ? productImageElement.src : '';
+            const quantityInput = productCard.querySelector('.quantity-input');
+            const quantity = Math.max(1, parseInt(quantityInput.value, 10) || 1);
+
+            // Solo se acumula la cantidad cuando es exactamente el mismo producto.
+            // No se deben fusionar productos distintos únicamente porque tengan el mismo nombre.
+            const existingItem = cart.find(item => String(item.id) === String(productId));
 
             if (existingItem) {
+                existingItem.id = productId;
                 existingItem.quantity += quantity;
             } else {
                 cart.push({
@@ -1437,12 +1484,41 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             updateCart();
+            if (cartSidebar.classList.contains('open')) renderCart();
             showNotification();
         });
     });
 
+    // A 3% discount is applied to each individual product when its quantity is 10 or more.
+    function calcularTotales() {
+        let subtotal = 0;
+        let descuento = 0;
+
+        cart.forEach(item => {
+            const importe = item.price * item.quantity;
+            subtotal += importe;
+            if (item.quantity >= 10) {
+                descuento += importe * 0.03;
+            }
+        });
+
+        // El descuento se calcula por línea de producto, nunca sobre el carrito completo.
+        // El total general es la suma de los totales individuales de cada producto.
+        const total = cart.reduce((suma, item) => {
+            const importeProducto = Number(item.price) * Number(item.quantity);
+            const descuentoProducto = Number(item.quantity) >= 10
+                ? importeProducto * 0.03
+                : 0;
+            return suma + importeProducto - descuentoProducto;
+        }, 0);
+
+        return { subtotal, descuento, total };
+    }
+
     function updateCart() {
-        cartCount.textContent = cart.reduce((total, item) => total + item.quantity, 0);
+        cartCount.textContent = cart.reduce(
+            (total, item) => total + (parseInt(item.quantity, 10) || 0), 0
+        );
         localStorage.setItem('cart', JSON.stringify(cart));
     }
 
@@ -1451,15 +1527,17 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (cart.length === 0) {
             cartItemsContainer.innerHTML = '<p class="empty-cart">Tu carrito está vacío</p>';
+            cartSubtotal.textContent = '$0.00';
+            cartDiscount.textContent = '$0.00';
             cartTotal.textContent = '$0.00';
             return;
         }
 
-        let total = 0;
-
         cart.forEach(item => {
-            const itemTotal = item.price * item.quantity;
-            total += itemTotal;
+            const itemSubtotal = item.price * item.quantity;
+            const itemDiscount = item.quantity >= 10 ? itemSubtotal * 0.03 : 0;
+            const itemTotal = itemSubtotal - itemDiscount;
+            const missingForDiscount = Math.max(0, 10 - item.quantity);
 
             const cartItem = document.createElement('div');
             cartItem.className = 'cart-item';
@@ -1469,11 +1547,25 @@ document.addEventListener('DOMContentLoaded', function () {
                 <img src="${item.image}" alt="${item.name}" class="cart-item-img">
                 <div class="cart-item-info">
                     <h4 class="cart-item-title">${item.name}</h4>
-                    <p class="cart-item-price">$${item.price.toFixed(2)}</p>
+                    <p class="cart-item-price">$${item.price.toFixed(2)} por unidad</p>
                     <div class="cart-item-quantity">
-                        <button class="quantity-btn minus"><i class="fas fa-minus"></i></button>
+                        <button class="quantity-btn minus" type="button" aria-label="Disminuir cantidad">
+                            <i class="fas fa-minus"></i>
+                        </button>
                         <input type="number" value="${item.quantity}" min="1" class="quantity-input">
-                        <button class="quantity-btn plus"><i class="fas fa-plus"></i></button>
+                        <button class="quantity-btn plus" type="button" aria-label="Aumentar cantidad">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                    <p class="discount-message">${
+                        item.quantity >= 10
+                            ? '¡Descuento del 3% aplicado!'
+                            : `Agrega ${missingForDiscount} unidad(es) más para obtener el 3%`
+                    }</p>
+                    <div class="cart-item-breakdown">
+                        <div>Subtotal: $${itemSubtotal.toFixed(2)}</div>
+                        ${itemDiscount > 0 ? `<div>Descuento 3%: -$${itemDiscount.toFixed(2)}</div>` : ''}
+                        <strong>Total del producto: $${itemTotal.toFixed(2)}</strong>
                     </div>
                     <span class="remove-item">Eliminar</span>
                 </div>
@@ -1489,7 +1581,6 @@ document.addEventListener('DOMContentLoaded', function () {
             minusBtn.addEventListener('click', () => {
                 if (item.quantity > 1) {
                     item.quantity--;
-                    quantityInput.value = item.quantity;
                     updateCart();
                     renderCart();
                 }
@@ -1497,18 +1588,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
             plusBtn.addEventListener('click', () => {
                 item.quantity++;
-                quantityInput.value = item.quantity;
                 updateCart();
                 renderCart();
             });
 
             quantityInput.addEventListener('change', () => {
-                const newQuantity = parseInt(quantityInput.value);
-                if (newQuantity >= 1) {
-                    item.quantity = newQuantity;
-                    updateCart();
-                    renderCart();
-                }
+                const newQuantity = Math.max(1, parseInt(quantityInput.value, 10) || 1);
+                item.quantity = newQuantity;
+                updateCart();
+                renderCart();
             });
 
             removeBtn.addEventListener('click', () => {
@@ -1518,7 +1606,10 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         });
 
-        cartTotal.textContent = `$${total.toFixed(2)}`;
+        const totals = calcularTotales();
+        cartSubtotal.textContent = `$${totals.subtotal.toFixed(2)}`;
+        cartDiscount.textContent = `-$${totals.descuento.toFixed(2)}`;
+        cartTotal.textContent = `$${totals.total.toFixed(2)}`;
     }
 
     function showNotification() {
@@ -1532,18 +1623,29 @@ document.addEventListener('DOMContentLoaded', function () {
     checkoutBtn.addEventListener('click', () => {
         if (cart.length === 0) return;
 
+        const totals = calcularTotales();
         let message = '¡Hola! Quiero realizar la siguiente compra:\n\n';
-        let total = 0;
 
         cart.forEach(item => {
-            const itemTotal = item.price * item.quantity;
-            total += itemTotal;
-            message += `- ${item.name} (${item.quantity} x $${item.price.toFixed(2)}) = $${itemTotal.toFixed(2)}\n`;
+            const itemSubtotal = item.price * item.quantity;
+            const itemDiscount = item.quantity >= 10 ? itemSubtotal * 0.03 : 0;
+            const itemTotal = itemSubtotal - itemDiscount;
+
+            message += `Producto: ${item.name}\n`;
+            message += `Cantidad: ${item.quantity}\n`;
+            message += `Precio unitario: $${item.price.toFixed(2)}\n`;
+            message += `Subtotal: $${itemSubtotal.toFixed(2)}\n`;
+            if (itemDiscount > 0) {
+                message += `Descuento 3%: -$${itemDiscount.toFixed(2)}\n`;
+            }
+            message += `Total del producto: $${itemTotal.toFixed(2)}\n\n`;
         });
 
-        message += `\nTotal: $${total.toFixed(2)}`;
+        message += `Subtotal general: $${totals.subtotal.toFixed(2)}\n`;
+        message += `Descuento total: -$${totals.descuento.toFixed(2)}\n`;
+        message += `TOTAL A PAGAR: $${totals.total.toFixed(2)}`;
 
-        const phoneNumber = '+5363995809';
+        const phoneNumber = '5363995809';
         const encodedMessage = encodeURIComponent(message);
         const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
 
@@ -1553,7 +1655,21 @@ document.addEventListener('DOMContentLoaded', function () {
     function loadCart() {
         const savedCart = localStorage.getItem('cart');
         if (savedCart) {
-            cart = JSON.parse(savedCart);
+            try {
+                const parsedCart = JSON.parse(savedCart);
+                cart = Array.isArray(parsedCart) ? parsedCart.filter(item =>
+                    item && item.name && Number.isFinite(Number(item.price)) &&
+                    Number(item.price) >= 0 && Number(item.quantity) > 0
+                ).map(item => ({
+                    ...item,
+                    id: item.id || item.image || item.name.trim().toLowerCase(),
+                    price: Number(item.price),
+                    quantity: Math.max(1, parseInt(item.quantity, 10) || 1)
+                })) : [];
+            } catch (error) {
+                cart = [];
+                localStorage.removeItem('cart');
+            }
             updateCart();
         }
     }
