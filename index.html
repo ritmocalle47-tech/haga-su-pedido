@@ -861,6 +861,49 @@ body {
 
 
 
+
+/* Etiqueta NUEVO: se activa añadiendo data-new="true" a una tarjeta */
+.product-card { position: relative; }
+.product-card[data-new="true"] .product-image::before {
+    content: "NUEVO";
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    z-index: 20;
+    background: linear-gradient(135deg, #ff3d6e, #ff8a00);
+    color: #fff;
+    padding: 7px 13px;
+    border-radius: 20px;
+    font-size:  .78rem;
+    font-weight: 900;
+    letter-spacing: .7px;
+    box-shadow: 0 4px 12px rgba(0,0,0,.25);
+    animation: newPulse 1.8s infinite;
+    pointer-events: none;
+}
+@keyframes newPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.07); }
+}
+.discount-code-box {
+    margin: 12px 0 16px;
+    padding: 12px;
+    border: 1px dashed var(--secondary);
+    border-radius: 12px;
+    background: #f7fffd;
+}
+.discount-code-box label { display:block; font-weight:700; margin-bottom:7px; }
+.discount-code-controls { display:flex; gap:7px; }
+.discount-code-controls input {
+    min-width:0; flex:1; padding:10px; border:1px solid #ccd5d8;
+    border-radius:8px; text-transform:uppercase;
+}
+.discount-code-controls button {
+    border:0; border-radius:8px; padding:0 13px; color:#fff;
+    background:var(--success); font-weight:700; cursor:pointer;
+}
+#coupon-message { display:block; min-height:18px; margin-top:7px; font-size:.8rem; }
+
 </style>
 
 </head>
@@ -1515,13 +1558,24 @@ body {
             <!-- Los items del carrito se agregarían dinámicamente -->
         </div>
         <div class="cart-footer">
+            <div class="discount-code-box">
+                <label for="discount-code">Código de descuento (5%)</label>
+                <div class="discount-code-controls">
+                    <input id="discount-code" type="text" placeholder="Introduce tu código" autocomplete="off">
+                    <button type="button" id="apply-discount-code">Aplicar</button>
+                </div>
+            </div>
             <div class="cart-subtotal">
                 <span>Subtotal:</span>
                 <span id="cart-subtotal">$0.00</span>
             </div>
             <div class="cart-discount">
-                <span>Descuento aplicado a productos con 10+ unidades:</span>
+                <span>Descuento por cantidad (10+ unidades):</span>
                 <span id="cart-discount">$0.00</span>
+            </div>
+            <div class="cart-discount" id="coupon-discount-row" style="display:none;">
+                <span>Descuento código (5%):</span>
+                <span id="coupon-discount-amount">-$0.00</span>
             </div>
             <div class="cart-total">
                 <span>Total:</span>
@@ -1558,6 +1612,8 @@ body {
 document.addEventListener('DOMContentLoaded', function () {
     // Variables globales
     let cart = [];
+    let couponApplied = localStorage.getItem('couponApplied') === 'true';
+    const validCouponCode = 'HAGA5';
     let currentBanner = 0;
     const banners = document.querySelectorAll('.banner');
     const dots = document.querySelectorAll('.dot');
@@ -1570,6 +1626,11 @@ document.addEventListener('DOMContentLoaded', function () {
     const cartTotal = document.querySelector('.total-price');
     const cartSubtotal = document.querySelector('#cart-subtotal');
     const cartDiscount = document.querySelector('#cart-discount');
+    const couponInput = document.querySelector('#discount-code');
+    const applyCouponBtn = document.querySelector('#apply-discount-code');
+    const couponMessage = document.querySelector('#coupon-message');
+    const couponDiscountRow = document.querySelector('#coupon-discount-row');
+    const couponDiscountAmount = document.querySelector('#coupon-discount-amount');
     const checkoutBtn = document.querySelector('.checkout-btn');
     const cartNotification = document.querySelector('.cart-notification');
 
@@ -1764,7 +1825,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    // A 3% discount is applied to each individual product when its quantity is 10 or more.
+    // Descuento por volumen existente (3% desde 10 unidades) y cupón general HAGA5 (5%).
     function calcularTotales() {
         let subtotal = 0;
         let descuento = 0;
@@ -1772,22 +1833,14 @@ document.addEventListener('DOMContentLoaded', function () {
         cart.forEach(item => {
             const importe = item.price * item.quantity;
             subtotal += importe;
-            if (item.quantity >= 10) {
-                descuento += importe * 0.03;
-            }
+            if (item.quantity >= 10) descuento += importe * 0.03;
         });
 
-        // El descuento se calcula por línea de producto, nunca sobre el carrito completo.
-        // El total general es la suma de los totales individuales de cada producto.
-        const total = cart.reduce((suma, item) => {
-            const importeProducto = Number(item.price) * Number(item.quantity);
-            const descuentoProducto = Number(item.quantity) >= 10
-                ? importeProducto * 0.03
-                : 0;
-            return suma + importeProducto - descuentoProducto;
-        }, 0);
+        const baseConDescuento = Math.max(0, subtotal - descuento);
+        const descuentoCupon = couponApplied ? baseConDescuento * 0.05 : 0;
+        const total = baseConDescuento - descuentoCupon;
 
-        return { subtotal, descuento, total };
+        return { subtotal, descuento, descuentoCupon, total };
     }
 
     function updateCart() {
@@ -1804,6 +1857,8 @@ document.addEventListener('DOMContentLoaded', function () {
             cartItemsContainer.innerHTML = '<p class="empty-cart">Tu carrito está vacío</p>';
             cartSubtotal.textContent = '$0.00';
             cartDiscount.textContent = '$0.00';
+            couponDiscountRow.style.display = 'none';
+            couponDiscountAmount.textContent = '-$0.00';
             cartTotal.textContent = '$0.00';
             return;
         }
@@ -1884,7 +1939,14 @@ document.addEventListener('DOMContentLoaded', function () {
         const totals = calcularTotales();
         cartSubtotal.textContent = `$${totals.subtotal.toFixed(2)}`;
         cartDiscount.textContent = `-$${totals.descuento.toFixed(2)}`;
+        couponDiscountRow.style.display = couponApplied ? 'flex' : 'none';
+        couponDiscountAmount.textContent = `-$${totals.descuentoCupon.toFixed(2)}`;
         cartTotal.textContent = `$${totals.total.toFixed(2)}`;
+        if (couponApplied) {
+            couponInput.value = validCouponCode;
+            couponMessage.textContent = '¡Código aplicado! Tienes un 5% de descuento.';
+            couponMessage.style.color = 'var(--success)';
+        }
     }
 
     function showNotification() {
@@ -1894,6 +1956,30 @@ document.addEventListener('DOMContentLoaded', function () {
             cartNotification.classList.remove('show');
         }, 3000);
     }
+
+    applyCouponBtn.addEventListener('click', () => {
+        const enteredCode = couponInput.value.trim().toUpperCase();
+        if (enteredCode === validCouponCode) {
+            couponApplied = true;
+            localStorage.setItem('couponApplied', 'true');
+            couponMessage.textContent = '¡Perfecto! Se aplicó un 5% de descuento al carrito.';
+            couponMessage.style.color = 'var(--success)';
+        } else {
+            couponApplied = false;
+            localStorage.removeItem('couponApplied');
+            couponMessage.textContent = 'Código no válido. Comprueba e inténtalo de nuevo.';
+            couponMessage.style.color = 'var(--danger)';
+        }
+        renderCart();
+    });
+
+    couponInput.addEventListener('input', () => {
+        if (!couponInput.value.trim()) {
+            couponApplied = false;
+            localStorage.removeItem('couponApplied');
+            renderCart();
+        }
+    });
 
     checkoutBtn.addEventListener('click', () => {
         if (cart.length === 0) return;
